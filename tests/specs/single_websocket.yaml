@@ -1,0 +1,30 @@
+version: 1
+name: single_websocket
+fail_after: 100ms
+default_within: 50ms
+
+pipeline:
+  - type: transport@simulated@input
+    name: input
+  - type: transport@simulated@output
+    name: output
+
+script:
+  - op: await
+    node: input
+    direction: downstream
+    pattern:
+      type: text_input
+      body:
+        text: "Hello, world!"
+    within: 50ms
+  - op: send
+    node: input
+    direction: downstream
+    after: 10ms
+    pattern:
+      type: text_input
+      body:
+        text: "Hello, world!"
+
+
