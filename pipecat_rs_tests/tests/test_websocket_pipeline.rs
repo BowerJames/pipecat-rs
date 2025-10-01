@@ -1,5 +1,4 @@
-use pipecat_rs::{Pipeline, Transport, WebSocketTransport, WebSocketTransportConfig, Observer, PipelineHandle};
-use pipecat_rs::frame::Frame;
+use pipecat_rs::{Pipeline, Transport, WebSocketTransport, WebSocketTransportConfig, Observer, Processor};
 use std::boxed::Box;
 use tokio;
 use tokio_tungstenite::connect_async;
@@ -19,7 +18,7 @@ async fn test_websocket_pipeline_builds() {
     let transport = Transport::<WebSocketTransport>::new(config);
     let input = transport.input();
     let output = transport.output();
-    let processors = vec![
+    let processors: Vec<Box<dyn Processor>> = vec![
         Box::new(input),
         Box::new(output),
     ];
@@ -37,7 +36,7 @@ async fn test_websocket_pipeline_can_serve() {
     let transport = Transport::<WebSocketTransport>::new(config);
     let input = transport.input();
     let output = transport.output();
-    let processors = vec![
+    let processors: Vec<Box<dyn Processor>> = vec![
         Box::new(input),
         Box::new(output),
     ];
@@ -60,8 +59,8 @@ async fn test_websocket_pipeline_can_serve_and_connect() {
     let input = transport.input();
     let output = transport.output();
     let pipeline = Pipeline::new(vec![
-        Box::new(input),
-        Box::new(output),
+        Box::new(input) as Box<dyn Processor>,
+        Box::new(output) as Box<dyn Processor>,
     ]);
     assert!(pipeline.is_ok());
     let pipeline_handle = pipeline.serve_with_handle().await.unwrap();
@@ -109,18 +108,14 @@ async fn test_websocket_input_receives() {
     // Serialize to string and send as a text message
     ws_stream.send(Message::Text(msg.to_string())).await.expect("Failed to send JSON message");
     
-    // Wait for the frame to be received and stored (with timeout)
-    let frame = {
-        let mut frame = None;
-        for _ in 0..50 {
-            tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
-            if let Some(f) = input_observer.get_last_frame() {
-                frame = Some(f);
-                break;
-            }
-        }
-        frame.expect("Frame not received within 5 seconds")
-    };
+    // Wait for the frame to be received and stored
+    tokio::time::sleep(tokio::time::Duration::from_millis(200)).await;
+    
+    let frame = input_observer.get_last_outbound_frame()
+        .expect("Frame not received");
+    
+    // Check that the frame has the correct type and content (outbound from input endpoint)
+    assert_eq!(frame.frame_type, "input_text");
     assert_eq!(frame.content, random_string);
 
     pipeline_handle.shutdown().await;
@@ -136,8 +131,8 @@ async fn test_websocket_pipeline_wont_connect_before_serving() {
     let input = transport.input();
     let output = transport.output();
     let pipeline = Pipeline::new(vec![
-        Box::new(input),
-        Box::new(output),
+        Box::new(input) as Box<dyn Processor>,
+        Box::new(output) as Box<dyn Processor>,
     ]);
     assert!(pipeline.is_ok());
     

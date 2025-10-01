@@ -1,5 +1,5 @@
 [package]
-name = "pipecat_rs"
+name = "pipecat_rs_tests"
 version = "0.1.0"
 edition = "2024"
 
@@ -12,4 +12,7 @@ url = { workspace = true }
 serde_json = { workspace = true }
 tokio-util = { workspace = true }
 futures = "0.3"
+
+[dev-dependencies]
+pipecat_rs = { path = "../pipecat_rs" }
 pipecat_rs_core = { path = "../pipecat_rs_core" }

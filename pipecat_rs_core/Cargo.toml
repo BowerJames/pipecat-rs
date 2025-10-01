@@ -1,0 +1,8 @@
+[package]
+name = "pipecat_rs_core"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+url = { workspace = true }
+serde_json = { workspace = true }

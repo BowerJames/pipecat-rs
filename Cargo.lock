@@ -479,7 +479,7 @@ checksum = "78bed444cc8a2160f01cbcf811ef18cac863ad68ae8ca62092e8db51d51c761c"
 dependencies = [
  "libc",
  "wasi 0.11.1+wasi-snapshot-preview1",
- "windows-sys 0.59.0",
+ "windows-sys",
 ]
 
 [[package]]
@@ -544,9 +544,32 @@ version = "0.1.0"
 dependencies = [
  "async-trait",
  "futures",
- "once_cell",
+ "pipecat_rs_core",
  "serde_json",
- "socket2 0.5.10",
+ "tokio",
+ "tokio-tungstenite",
+ "tokio-util",
+ "url",
+ "uuid",
+]
+
+[[package]]
+name = "pipecat_rs_core"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+ "url",
+]
+
+[[package]]
+name = "pipecat_rs_tests"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "futures",
+ "pipecat_rs",
+ "pipecat_rs_core",
+ "serde_json",
  "tokio",
  "tokio-tungstenite",
  "tokio-util",
@@ -736,22 +759,12 @@ checksum = "67b1b7a3b5fe4f1376887184045fcf45c69e92af734b7aaddc05fb777b6fbd03"
 
 [[package]]
 name = "socket2"
-version = "0.5.10"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e22376abed350d73dd1cd119b57ffccad95b4e585a7cda43e286245ce23c0678"
-dependencies = [
- "libc",
- "windows-sys 0.52.0",
-]
-
-[[package]]
-name = "socket2"
 version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "233504af464074f9d066d7b5416c5f9b894a5862a6506e306f7b816cdd6f1807"
 dependencies = [
  "libc",
- "windows-sys 0.59.0",
+ "windows-sys",
 ]
 
 [[package]]
@@ -827,9 +840,9 @@ dependencies = [
  "pin-project-lite",
  "signal-hook-registry",
  "slab",
- "socket2 0.6.0",
+ "socket2",
  "tokio-macros",
- "windows-sys 0.59.0",
+ "windows-sys",
 ]
 
 [[package]]
@@ -1028,15 +1041,6 @@ name = "windows-link"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "45e46c0661abb7180e7b9c281db115305d49ca1709ab8242adf09666d2173c65"
-
-[[package]]
-name = "windows-sys"
-version = "0.52.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "282be5f36a8ce781fad8c8ae18fa3f9beff57ec1b52cb3de0789201425d9a33d"
-dependencies = [
- "windows-targets",
-]
 
 [[package]]
 name = "windows-sys"
