@@ -1,4 +1,4 @@
-use pipecat_rs::{Pipeline, Transport, WebSocketTransport, WebSocketTransportConfig, Observer};
+use pipecat_rs::{Pipeline, Transport, WebSocketTransport, WebSocketTransportConfig, Observer, PipelineHandle};
 use pipecat_rs::frame::Frame;
 use std::boxed::Box;
 use tokio;
@@ -43,11 +43,10 @@ async fn test_websocket_pipeline_can_serve() {
     ];
     let pipeline = Pipeline::new(processors);
 
-    let pipeline_handle = tokio::spawn(pipeline.serve());
+    let pipeline_handle = pipeline.serve_with_handle().await.unwrap();
     tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
-    // Check that the JoinHandle is still running and not finished
-    assert!(!pipeline_handle.is_finished());
-    pipeline_handle.abort();
+    
+    pipeline_handle.shutdown().await;
 
 }
 
@@ -65,13 +64,13 @@ async fn test_websocket_pipeline_can_serve_and_connect() {
         Box::new(output),
     ]);
     assert!(pipeline.is_ok());
-    let pipeline_handle = tokio::spawn(pipeline.serve());
+    let pipeline_handle = pipeline.serve_with_handle().await.unwrap();
     tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
     
     let url = Url::parse("ws://localhost:8002/v1/ws").unwrap();
     connect_async(url).await.expect("Failed to connect");
 
-    pipeline_handle.abort();
+    pipeline_handle.shutdown().await;
 }
 
 #[tokio::test]
@@ -92,7 +91,7 @@ async fn test_websocket_input_receives() {
         Box::new(output),
     ]);
     assert!(pipeline.is_ok());
-    let pipeline_handle = tokio::spawn(pipeline.serve());
+    let pipeline_handle = pipeline.serve_with_handle().await.unwrap();
     tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
     
     let url = Url::parse("ws://localhost:8003/v1/ws").unwrap();
@@ -124,5 +123,25 @@ async fn test_websocket_input_receives() {
     };
     assert_eq!(frame.content, random_string);
 
-    pipeline_handle.abort();
+    pipeline_handle.shutdown().await;
+}
+
+#[tokio::test]
+async fn test_websocket_pipeline_wont_connect_before_serving() {
+    let config = WebSocketTransportConfig {
+        port: 8002,
+        host: "localhost",
+    };
+    let transport = Transport::<WebSocketTransport>::new(config);
+    let input = transport.input();
+    let output = transport.output();
+    let pipeline = Pipeline::new(vec![
+        Box::new(input),
+        Box::new(output),
+    ]);
+    assert!(pipeline.is_ok());
+    
+    
+    let url = Url::parse("ws://localhost:8002/v1/ws").unwrap();
+    connect_async(url).await.expect_err("Should not be able to connect before serving");
 }
