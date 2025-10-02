@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["pipecat_rs", "pipecat_rs_core", "pipecat_rs_tests"]
+members = ["pipecat_rs", "pipecat_rs_locked", "pipecat_rs_tests"]
 
 
 [workspace.dependencies]

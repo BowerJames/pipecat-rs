@@ -15,4 +15,4 @@ futures = "0.3"
 
 [dev-dependencies]
 pipecat_rs = { path = "../pipecat_rs" }
-pipecat_rs_core = { path = "../pipecat_rs_core" }
+pipecat_rs_locked = { path = "../pipecat_rs_locked" }

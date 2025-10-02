@@ -12,4 +12,4 @@ url = { workspace = true }
 serde_json = { workspace = true }
 tokio-util = { workspace = true }
 futures = "0.3"
-pipecat_rs_core = { path = "../pipecat_rs_core" }
+pipecat_rs_locked = { path = "../pipecat_rs_locked" }

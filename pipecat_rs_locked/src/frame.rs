@@ -2,6 +2,19 @@ use url::Url;
 use serde_json;
 
 #[derive(Debug, Clone, PartialEq)]
+pub enum Frame {
+    DataFrame(DataFrame),
+    SystemFrame(SystemFrame),
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum SystemFrame {
+    StartUp,
+    Stop,
+    Shutdown
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub enum DataFrame {
     InputTextFrame(String),
     InputTextDeltaFrame(TextDelta),

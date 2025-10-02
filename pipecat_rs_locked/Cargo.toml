@@ -1,5 +1,5 @@
 [package]
-name = "pipecat_rs_core"
+name = "pipecat_rs_locked"
 version = "0.1.0"
 edition = "2024"
 
