@@ -1,3 +1,0 @@
-[env]
-# Run tests serially (one at a time) to avoid port conflicts
-RUST_TEST_THREADS = "1"

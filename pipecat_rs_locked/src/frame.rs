@@ -1,6 +1,10 @@
 use url::Url;
 use serde_json;
 
+pub enum FrameMeta {
+    
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum Frame {
     DataFrame(DataFrame),

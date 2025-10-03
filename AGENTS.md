@@ -154,7 +154,8 @@ When in test code development mode you have the following permissions:
 - Group related tests logically and use clear test structure
 - Focus on integration tests that test the complete pipeline flow
 - Do not worry about making tests compile or pass - this is purely specification writing
-- **Use simulated adapter alternatives**: All third-party services (LLMs, APIs, external services) must use simulated/mock adapters to avoid calling real third-party code during test execution
+- **Use simulated adapter alternatives**: All third-party services (LLMs, APIs, external services) must use simulated adapters to avoid calling real third-party code during test execution
+- Where possible interact with system as a user / client would using the actual connection methods they would use. If possible avoid using mocks.
 
 ## Compiler Driven Development
 
