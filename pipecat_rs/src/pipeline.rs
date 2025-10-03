@@ -3,14 +3,14 @@ use pipecat_rs_locked::frame::{Frame, SystemFrame};
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum AnyProcessor {
     Input(InputProcessor),
     Echo(EchoProcessor),
     Output(OutputProcessor),
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Pipeline {
     processors: Arc<Mutex<Vec<AnyProcessor>>>,
 }
@@ -26,7 +26,7 @@ impl Pipeline {
     }
 
     pub async fn process(&self, frame: Frame) -> Option<Frame> {
-        let list = match self.processors.lock().await.clone() { v => v };
+        let list = self.processors.lock().await.clone();
         let mut current = Some(frame);
         for p in list.iter() {
             if let Some(f) = current {
@@ -40,13 +40,13 @@ impl Pipeline {
         current
     }
 
-    pub async fn snapshot(&self) -> Vec<AnyProcessor> {
-        match self.processors.lock().await.clone() { v => v }
+    pub(crate) async fn snapshot(&self) -> Vec<AnyProcessor> {
+        self.processors.lock().await.clone()
     }
 
     pub async fn broadcast_system_startup(&self) {
         let startup = Frame::SystemFrame(SystemFrame::StartUp);
-        let list = match self.processors.lock().await.clone() { v => v };
+        let list = self.processors.lock().await.clone();
         for p in list.iter() {
             let _ = match p {
                 AnyProcessor::Input(proc) => proc.handle(startup.clone()).await,
@@ -58,7 +58,7 @@ impl Pipeline {
 
     pub async fn broadcast_system_shutdown(&self) {
         let shutdown = Frame::SystemFrame(SystemFrame::Shutdown);
-        let list = match self.processors.lock().await.clone() { v => v };
+        let list = self.processors.lock().await.clone();
         for p in list.iter() {
             match p {
                 AnyProcessor::Input(proc) => proc.handle_system_sync(shutdown.clone()),

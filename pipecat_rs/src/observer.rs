@@ -1,5 +1,6 @@
 use pipecat_rs_locked::frame::Frame;
 
+#[derive(Debug)]
 pub struct Observer {
     processed_frames: Vec<Frame>,
     emitted_frames: Vec<Frame>,

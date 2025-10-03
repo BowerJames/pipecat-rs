@@ -12,6 +12,7 @@ pub struct WebSocketServer {
     _port: u16,
 }
 
+#[derive(Debug)]
 pub struct ServerHandle {
     join: JoinHandle<()>,
     processors_snapshot: Vec<crate::pipeline::AnyProcessor>,
