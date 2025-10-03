@@ -25,7 +25,7 @@ impl Pipeline {
         let _ = self.processors.try_lock().map(|mut v| v.push(processor.into()));
     }
 
-    pub async fn process(&self, mut frame: Frame) -> Option<Frame> {
+    pub async fn process(&self, frame: Frame) -> Option<Frame> {
         let list = match self.processors.lock().await.clone() { v => v };
         let mut current = Some(frame);
         for p in list.iter() {
