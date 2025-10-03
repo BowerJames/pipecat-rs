@@ -1,7 +1,7 @@
 use std::sync::Arc;
 use tokio::sync::{Mutex, RwLock};
 use crate::observer::Observer;
-use pipecat_rs_locked::frame::{Frame, DataFrame};
+use pipecat_rs_locked::frame::{Frame, DataFrame, SystemFrame};
 
 #[derive(Clone)]
 pub struct InputProcessor {
@@ -11,12 +11,30 @@ pub struct InputProcessor {
 impl InputProcessor {
     pub fn new() -> Self { Self { observers: Arc::new(RwLock::new(Vec::new())) } }
     pub fn add_observer(&self, observer: Arc<Mutex<Observer>>) { let mut v = futures::executor::block_on(self.observers.write()); v.push(observer); }
-    pub async fn handle(&self, frame: Frame) -> Option<Frame> {
-        let list = self.observers.read().await.clone();
-        for obs in list.iter() {
-            let mut g = obs.lock().await; g.record_emitted(frame.clone());
+    pub fn handle_system_sync(&self, frame: Frame) {
+        if let Ok(list) = self.observers.try_read() {
+            for obs in list.iter() {
+                if let Ok(mut g) = obs.try_lock() { g.record_processed(frame.clone()); }
+            }
         }
-        Some(frame)
+    }
+    pub async fn handle(&self, frame: Frame) -> Option<Frame> {
+        match &frame {
+            Frame::SystemFrame(SystemFrame::StartUp) | Frame::SystemFrame(SystemFrame::Stop) | Frame::SystemFrame(SystemFrame::Shutdown) => {
+                let list = self.observers.read().await.clone();
+                for obs in list.iter() {
+                    let mut g = obs.lock().await; g.record_processed(frame.clone());
+                }
+                Some(frame)
+            }
+            _ => {
+                let list = self.observers.read().await.clone();
+                for obs in list.iter() {
+                    let mut g = obs.lock().await; g.record_emitted(frame.clone());
+                }
+                Some(frame)
+            }
+        }
     }
 }
 
@@ -28,6 +46,13 @@ pub struct EchoProcessor {
 impl EchoProcessor {
     pub fn new() -> Self { Self { observers: Arc::new(RwLock::new(Vec::new())) } }
     pub fn add_observer(&self, observer: Arc<Mutex<Observer>>) { let mut v = futures::executor::block_on(self.observers.write()); v.push(observer); }
+    pub fn handle_system_sync(&self, frame: Frame) {
+        if let Ok(list) = self.observers.try_read() {
+            for obs in list.iter() {
+                if let Ok(mut g) = obs.try_lock() { g.record_processed(frame.clone()); }
+            }
+        }
+    }
     pub async fn handle(&self, frame: Frame) -> Option<Frame> {
         let list = self.observers.read().await.clone();
         for obs in list.iter() {
@@ -55,6 +80,13 @@ pub struct OutputProcessor {
 impl OutputProcessor {
     pub fn new() -> Self { Self { observers: Arc::new(RwLock::new(Vec::new())) } }
     pub fn add_observer(&self, observer: Arc<Mutex<Observer>>) { let mut v = futures::executor::block_on(self.observers.write()); v.push(observer); }
+    pub fn handle_system_sync(&self, frame: Frame) {
+        if let Ok(list) = self.observers.try_read() {
+            for obs in list.iter() {
+                if let Ok(mut g) = obs.try_lock() { g.record_processed(frame.clone()); }
+            }
+        }
+    }
     pub async fn handle(&self, frame: Frame) -> Option<Frame> {
         let list = self.observers.read().await.clone();
         for obs in list.iter() {

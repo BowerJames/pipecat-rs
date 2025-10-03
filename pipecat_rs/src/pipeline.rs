@@ -1,5 +1,5 @@
 use crate::processors::{InputProcessor, EchoProcessor, OutputProcessor};
-use pipecat_rs_locked::frame::Frame;
+use pipecat_rs_locked::frame::{Frame, SystemFrame};
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
@@ -38,6 +38,34 @@ impl Pipeline {
             } else { break; }
         }
         current
+    }
+
+    pub async fn snapshot(&self) -> Vec<AnyProcessor> {
+        match self.processors.lock().await.clone() { v => v }
+    }
+
+    pub async fn broadcast_system_startup(&self) {
+        let startup = Frame::SystemFrame(SystemFrame::StartUp);
+        let list = match self.processors.lock().await.clone() { v => v };
+        for p in list.iter() {
+            let _ = match p {
+                AnyProcessor::Input(proc) => proc.handle(startup.clone()).await,
+                AnyProcessor::Echo(proc) => proc.handle(startup.clone()).await,
+                AnyProcessor::Output(proc) => proc.handle(startup.clone()).await,
+            };
+        }
+    }
+
+    pub async fn broadcast_system_shutdown(&self) {
+        let shutdown = Frame::SystemFrame(SystemFrame::Shutdown);
+        let list = match self.processors.lock().await.clone() { v => v };
+        for p in list.iter() {
+            match p {
+                AnyProcessor::Input(proc) => proc.handle_system_sync(shutdown.clone()),
+                AnyProcessor::Echo(proc) => proc.handle_system_sync(shutdown.clone()),
+                AnyProcessor::Output(proc) => proc.handle_system_sync(shutdown.clone()),
+            }
+        }
     }
 }
 

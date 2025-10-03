@@ -34,5 +34,18 @@ impl Observer {
     {
         self.emitted_frames.iter().cloned().any(predicate)
     }
+
+    pub fn processed_frames(&self) -> Vec<Frame> {
+        self.processed_frames.clone()
+    }
+
+    pub fn emitted_frames(&self) -> Vec<Frame> {
+        self.emitted_frames.clone()
+    }
+
+    pub fn clear(&mut self) {
+        self.processed_frames.clear();
+        self.emitted_frames.clear();
+    }
 }
 
