@@ -13,6 +13,14 @@ impl Observer {
         }
     }
 
+    pub fn record_processed(&mut self, frame: Frame) {
+        self.processed_frames.push(frame);
+    }
+
+    pub fn record_emitted(&mut self, frame: Frame) {
+        self.emitted_frames.push(frame);
+    }
+
     pub fn processed_contains<F>(&self, predicate: F) -> bool
     where
         F: Fn(Frame) -> bool,

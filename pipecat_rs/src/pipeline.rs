@@ -1,23 +1,43 @@
 use crate::processors::{InputProcessor, EchoProcessor, OutputProcessor};
+use pipecat_rs_locked::frame::Frame;
+use std::sync::Arc;
+use tokio::sync::Mutex;
 
+#[derive(Clone)]
 pub enum AnyProcessor {
     Input(InputProcessor),
     Echo(EchoProcessor),
     Output(OutputProcessor),
 }
 
+#[derive(Clone)]
 pub struct Pipeline {
-    processors: Vec<AnyProcessor>,
+    processors: Arc<Mutex<Vec<AnyProcessor>>>,
 }
 
 impl Pipeline {
-    pub fn new() -> Self { Self { processors: Vec::new() } }
+    pub fn new() -> Self { Self { processors: Arc::new(Mutex::new(Vec::new())) } }
 
-    pub fn add_processor<T>(&self, _processor: T)
+    pub fn add_processor<T>(&self, processor: T)
     where
         T: Into<AnyProcessor>
     {
-        // compiler-driven stub; no-op
+        let _ = self.processors.try_lock().map(|mut v| v.push(processor.into()));
+    }
+
+    pub async fn process(&self, mut frame: Frame) -> Option<Frame> {
+        let list = match self.processors.lock().await.clone() { v => v };
+        let mut current = Some(frame);
+        for p in list.iter() {
+            if let Some(f) = current {
+                current = match p {
+                    AnyProcessor::Input(proc) => proc.handle(f).await,
+                    AnyProcessor::Echo(proc) => proc.handle(f).await,
+                    AnyProcessor::Output(proc) => proc.handle(f).await,
+                };
+            } else { break; }
+        }
+        current
     }
 }
 
